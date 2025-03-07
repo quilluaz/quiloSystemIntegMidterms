@@ -4,11 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Gmail Contact Manager</title>
-
-    <!-- CSS -->
     <link rel="stylesheet" th:href="@{/css/styles.css}" />
     <link
       href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@300;400;500&display=swap"
       rel="stylesheet" />
   </head>
 
@@ -25,18 +26,14 @@
 
       <main class="main-content">
         <div class="contacts-header">
-          <h2>
-            Contacts (
-            <span th:text="${#lists.size(contacts)}">0</span>
-            )
-          </h2>
+          <h2>Contacts (<span th:text="${#lists.size(contacts)}">0</span>)</h2>
           <button id="add-contact-btn" class="primary-btn">
             <span class="material-icons">add</span>
             Add Contact
           </button>
         </div>
 
-        <div class="contacts-list" id="contacts-list">
+        <div class="contacts-grid" id="contacts-grid">
           <!-- If empty, show "no contacts" -->
           <div class="empty-state" th:if="${#lists.isEmpty(contacts)}">
             <span class="material-icons">person_off</span>
@@ -44,58 +41,101 @@
           </div>
 
           <!-- Otherwise, loop each contact -->
-          <div th:each="person : ${contacts}" class="contact-item">
-            <div class="contact-avatar">
-              <span class="material-icons">account_circle</span>
-            </div>
-            <div class="contact-details">
-              <div
-                class="contact-name"
-                th:text="${
-                  #lists.isEmpty(person.names)
-                    ? 'No Name'
-                    : (person.names[0].givenName == null ? '' : person.names[0].givenName)
-                      + (person.names[0].familyName == null ? '' : ' ' + person.names[0].familyName)
-                }">
-                Name
+          <div
+            th:each="contact : ${contacts}"
+            class="contact-card"
+            th:attr="data-resource-name=${contact.resourceName},
+                        data-contact-fname=${contact.firstName},
+                        data-contact-lname=${contact.lastName},
+                        data-contact-emails=${contact.emails != null and #lists.size(contact.emails) > 0 ? #strings.arrayJoin(contact.emails, ', ') : ''},
+                        data-contact-phones=${contact.phones != null and #lists.size(contact.phones) > 0 ? #strings.arrayJoin(contact.phones, ', ') : ''},
+                        data-contact-birthday=${contact.formattedBirthday},
+                        data-contact-notes=${contact.notes}">
+            <div class="contact-card-content">
+              <div class="contact-avatar">
+                <img
+                  th:if="${contact.photoUrl != null}"
+                  th:src="${contact.photoUrl}"
+                  alt="Avatar" />
+                <span th:if="${contact.photoUrl == null}" class="material-icons"
+                  >account_circle</span
+                >
               </div>
-              <div
-                class="contact-email"
-                th:text="${#lists.isEmpty(person.emailAddresses) 
-                     ? 'No Email' 
-                     : person.emailAddresses[0].value}">
-                someone@domain
-              </div>
-              <div
-                class="contact-number"
-                th:text="${#lists.isEmpty(person.phoneNumbers) 
-                     ? 'No Phone' 
-                     : person.phoneNumbers[0].value}">
-                123-4567
+              <div class="contact-details">
+                <div
+                  class="contact-name"
+                  th:text="${(contact.firstName != null ? contact.firstName : '') + ' ' + (contact.lastName != null ? contact.lastName : '')}">
+                  Name
+                </div>
+                <!-- Show primary email and phone only -->
+                <div
+                  class="contact-primary-email"
+                  th:if="${contact.emails != null and #lists.size(contact.emails) > 0}">
+                  <span class="material-icons">email</span>
+                  <span th:text="${contact.emails[0]}"></span>
+                </div>
+                <div
+                  class="contact-primary-phone"
+                  th:if="${contact.phones != null and #lists.size(contact.phones) > 0}">
+                  <span class="material-icons">phone</span>
+                  <span th:text="${contact.phones[0]}"></span>
+                </div>
               </div>
             </div>
             <div class="contact-actions">
               <!-- Edit Button -->
               <button
                 class="action-btn edit-btn"
-                th:attr="data-resource-name=${#strings.substringAfter(person.resourceName, 'people/')},
-         data-contact-fname=${#lists.isEmpty(person.names) ? '' : person.names[0].givenName},
-         data-contact-lname=${#lists.isEmpty(person.names) ? '' : person.names[0].familyName},
-         data-contact-email=${#lists.isEmpty(person.emailAddresses) ? '' : person.emailAddresses[0].value},
-         data-contact-phone=${#lists.isEmpty(person.phoneNumbers) ? '' : person.phoneNumbers[0].value}">
+                th:attr="data-resource-name=${contact.resourceName},
+                               data-contact-fname=${contact.firstName},
+                               data-contact-lname=${contact.lastName},
+                               data-contact-emails=${contact.emails != null and #lists.size(contact.emails) > 0 ? #strings.arrayJoin(contact.emails, ', ') : ''},
+                               data-contact-phones=${contact.phones != null and #lists.size(contact.phones) > 0 ? #strings.arrayJoin(contact.phones, ', ') : ''},
+                               data-contact-birthday=${contact.formattedBirthday},
+                               data-contact-notes=${contact.notes}">
                 <span class="material-icons">edit</span>
               </button>
 
               <!-- Delete Button -->
               <button
                 class="action-btn delete-btn"
-                th:attr="data-resource-name=${#strings.substringAfter(person.resourceName, 'people/')}">
+                th:attr="data-resource-name=${contact.resourceName}">
                 <span class="material-icons">delete</span>
               </button>
             </div>
           </div>
         </div>
       </main>
+    </div>
+
+    <!-- Contact Details Modal -->
+    <div id="details-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="details-name">Contact Details</h2>
+          <span class="close-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+          <div class="details-content">
+            <div id="details-emails" class="details-section">
+              <h3>Email Addresses</h3>
+              <ul class="details-list" id="details-emails-list"></ul>
+            </div>
+            <div id="details-phones" class="details-section">
+              <h3>Phone Numbers</h3>
+              <ul class="details-list" id="details-phones-list"></ul>
+            </div>
+            <div id="details-birthday" class="details-section">
+              <h3>Birthday</h3>
+              <p id="details-birthday-value"></p>
+            </div>
+            <div id="details-notes" class="details-section">
+              <h3>Notes</h3>
+              <p id="details-notes-value"></p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Add/Edit Contact Modal -->
@@ -107,41 +147,37 @@
         </div>
         <div class="modal-body">
           <form id="contact-form" method="post">
-            <!-- Hidden input for resourceName (for editing) -->
             <input type="hidden" id="resource-name" name="resourceName" />
-
-            <div class="form-group">
-              <div class="profile-pic-container">
-                <div class="profile-pic" id="profile-pic-preview">
-                  <span class="material-icons">account_circle</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- FIRST NAME -->
             <div class="form-group">
               <label for="contact-fname">First Name</label>
               <input type="text" id="contact-fname" name="firstName" />
             </div>
-
-            <!-- LAST NAME -->
             <div class="form-group">
               <label for="contact-lname">Last Name</label>
               <input type="text" id="contact-lname" name="lastName" />
             </div>
-
-            <!-- EMAIL -->
             <div class="form-group">
-              <label for="contact-email">Email</label>
-              <input type="email" id="contact-email" name="email" />
+              <label for="contact-email">Email(s)</label>
+              <div id="email-container"></div>
+              <button type="button" id="add-email-btn" class="secondary-btn">
+                <span class="material-icons">add</span> Add Email
+              </button>
             </div>
-
-            <!-- PHONE -->
             <div class="form-group">
-              <label for="contact-number">Phone Number</label>
-              <input type="tel" id="contact-number" name="phone" />
+              <label for="contact-number">Phone Number(s)</label>
+              <div id="phone-container"></div>
+              <button type="button" id="add-phone-btn" class="secondary-btn">
+                <span class="material-icons">add</span> Add Phone
+              </button>
             </div>
-
+            <div class="form-group">
+              <label for="contact-birthday">Birthday</label>
+              <input type="date" id="contact-birthday" name="birthday" />
+            </div>
+            <div class="form-group">
+              <label for="contact-notes">Notes</label>
+              <textarea id="contact-notes" name="notes"></textarea>
+            </div>
             <div class="form-actions">
               <button type="button" class="secondary-btn" id="cancel-btn">
                 Cancel
@@ -178,7 +214,7 @@
       </div>
     </div>
 
-    <!-- Success Modal (optional) -->
+    <!-- Success Modal -->
     <div id="success-modal" class="modal">
       <div class="modal-content">
         <div class="modal-header">
