@@ -20,16 +20,16 @@ This project is a Spring Boot web application that integrates with the Google Co
 
 ### 2. Clone the Repository
 ```sh
-git clone <repository-url>
-cd <project-directory>
+git clone https://github.com/quilluaz/quiloSystemIntegMidterms
 ```
 
 ### 3. Configure Environment Variables
 Create a `.env` file in the project root and add the following:
 ```
-GOOGLE_CLIENT_ID=your-client-id
-GOOGLE_CLIENT_SECRET=your-client-secret
+GOOGLE_CLIENT_ID=(clientId)
+GOOGLE_CLIENT_SECRET=(clientSecret)
 ```
+(note: replace clientId and clientSecret with actual credentials)
 
 ## Running the Application
 1. Start the application
