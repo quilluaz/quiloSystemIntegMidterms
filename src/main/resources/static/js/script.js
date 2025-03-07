@@ -195,7 +195,6 @@ function setupModalOutsideClickListeners() {
 
   modals.forEach((modal) => {
     modal.addEventListener("click", function (e) {
-      // Close if clicking outside the modal content
       if (e.target === modal) {
         closeModal(modal);
       }
@@ -203,7 +202,7 @@ function setupModalOutsideClickListeners() {
   });
 }
 
-// Open details modal
+// Details modal
 function openDetailsModal(
   resName,
   fName,
@@ -215,7 +214,7 @@ function openDetailsModal(
 ) {
   console.log("Opening details modal");
 
-  // Set name in header
+  // Set name
   const fullName = `${fName} ${lName}`.trim();
   detailsName.textContent = fullName || "Contact Details";
 
@@ -266,7 +265,7 @@ function openDetailsModal(
   openModal(detailsModal);
 }
 
-// Open add contact modal
+// Add contact modal
 function openAddModal() {
   console.log("Opening add contact modal");
   modalTitle.textContent = "Add Contact";
@@ -277,17 +276,14 @@ function openAddModal() {
   contactNotesInput.value = "";
   clearContainer(contactEmailContainer);
   clearContainer(contactPhoneContainer);
-
-  // Add one default email and phone field
   addEmailField();
   addPhoneField();
 
-  // For creation, POST /contacts
   contactForm.action = "/contacts";
   openModal(contactModal);
 }
 
-// Open edit contact modal
+// Edit contact modal
 function openEditModal(resName, fName, lName, emails, phones, birthday, notes) {
   console.log("Opening edit contact modal");
   modalTitle.textContent = "Edit Contact";
@@ -299,7 +295,6 @@ function openEditModal(resName, fName, lName, emails, phones, birthday, notes) {
   clearContainer(contactEmailContainer);
   clearContainer(contactPhoneContainer);
 
-  // Prepopulate email and phone containers with the provided values
   if (emails) {
     emails.split(/,\s*/).forEach((email) => {
       addEmailField(email.trim());
@@ -316,12 +311,11 @@ function openEditModal(resName, fName, lName, emails, phones, birthday, notes) {
     addPhoneField();
   }
 
-  // Use path: /contacts/{resourceName}/update
   contactForm.action = "/contacts/" + resName + "/update";
   openModal(contactModal);
 }
 
-// Open delete confirmation modal
+// Delete confirmation modal
 function openDeleteModal(resName) {
   console.log("Opening delete modal");
   currentContactId = resName;
@@ -329,7 +323,6 @@ function openDeleteModal(resName) {
   openModal(deleteModal);
 }
 
-// Dynamic addition of an email input field
 function addEmailField(value = "") {
   const input = document.createElement("input");
   input.type = "email";
@@ -342,7 +335,6 @@ function addEmailField(value = "") {
   contactEmailContainer.appendChild(input);
 }
 
-// Dynamic addition of a phone input field
 function addPhoneField(value = "") {
   const input = document.createElement("input");
   input.type = "tel";
@@ -355,21 +347,19 @@ function addPhoneField(value = "") {
   contactPhoneContainer.appendChild(input);
 }
 
-// Helper to clear a container's children
 function clearContainer(container) {
   while (container && container.firstChild) {
     container.removeChild(container.firstChild);
   }
 }
 
-// Handle form submission
+// Form submission handling
 function handleFormSubmit() {
   console.log("Handling form submission");
   // Get form data
   const formData = new FormData(contactForm);
   const url = contactForm.action;
 
-  // Send form data via fetch
   fetch(url, {
     method: "POST",
     body: formData,
@@ -383,7 +373,7 @@ function handleFormSubmit() {
             : "Contact updated successfully!"
         );
 
-        // Reload page after a delay to show the success message
+        // Reload delay to show success message
         setTimeout(() => {
           window.location.reload();
         }, 1500);
@@ -397,7 +387,7 @@ function handleFormSubmit() {
     });
 }
 
-// Handle delete submission
+// Delete Handling
 function handleDeleteSubmit() {
   console.log("Handling delete submission");
   const url = deleteForm.action;
@@ -410,7 +400,7 @@ function handleDeleteSubmit() {
         closeModal(deleteModal);
         showSuccessMessage("Contact deleted successfully!");
 
-        // Reload page after a delay to show the success message
+        // Reload delay to show success message
         setTimeout(() => {
           window.location.reload();
         }, 1500);
@@ -424,7 +414,7 @@ function handleDeleteSubmit() {
     });
 }
 
-// Modal functions
+// Modal
 function openModal(modal) {
   console.log("Opening modal");
   if (modal) {
@@ -443,7 +433,7 @@ function closeModal(modal) {
   }
 }
 
-// Show success message
+// Success message
 function showSuccessMessage(message) {
   console.log("Showing success message:", message);
   if (successMessage) {
@@ -452,5 +442,4 @@ function showSuccessMessage(message) {
   openModal(successModal);
 }
 
-// Initialize the app
 document.addEventListener("DOMContentLoaded", init);
