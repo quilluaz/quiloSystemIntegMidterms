@@ -20,10 +20,6 @@ public class GoogleContactController {
         this.googlePeopleService = googlePeopleService;
     }
 
-    /**
-     * Display the list of contacts.
-     * Converts the Person objects into ContactDto objects that include a formatted birthday.
-     */
     @GetMapping
     public String getContacts(OAuth2AuthenticationToken authentication, Model model) {
         List<Person> persons = googlePeopleService.getContacts(authentication);
@@ -89,18 +85,12 @@ public class GoogleContactController {
         return dto;
     }
 
-    /**
-     * Show form for adding a new contact.
-     */
     @GetMapping("/new")
     public String showAddContactForm(Model model) {
         model.addAttribute("contactForm", new ContactForm());
         return "contact-form";
     }
 
-    /**
-     * Handle POST for creating a new contact.
-     */
     @PostMapping
     public String addContact(OAuth2AuthenticationToken authentication,
                              @ModelAttribute ContactForm contactForm) {
@@ -118,9 +108,6 @@ public class GoogleContactController {
         return "redirect:/contacts";
     }
 
-    /**
-     * Show an edit form for a single contact.
-     */
     @GetMapping("/{contactId}/edit")
     public String showEditContactForm(@PathVariable String contactId,
                                       OAuth2AuthenticationToken authentication,
@@ -165,9 +152,6 @@ public class GoogleContactController {
         return "contact-form";
     }
 
-    /**
-     * Handle POST to update an existing contact.
-     */
     @PostMapping("/{contactId}/update")
     public String updateContact(OAuth2AuthenticationToken authentication,
                                 @PathVariable String contactId,
@@ -188,9 +172,6 @@ public class GoogleContactController {
         return "redirect:/contacts";
     }
 
-    /**
-     * Delete contact by ID portion only.
-     */
     @PostMapping("/{contactId}/delete")
     public String deleteContact(OAuth2AuthenticationToken authentication,
                                 @PathVariable String contactId) {
@@ -199,9 +180,6 @@ public class GoogleContactController {
         return "redirect:/contacts";
     }
 
-    /**
-     * Form-backing bean for contact data.
-     */
     public static class ContactForm {
         private String firstName;
         private String lastName;
@@ -229,9 +207,6 @@ public class GoogleContactController {
         public void setNotes(String notes) { this.notes = notes; }
     }
 
-    /**
-     * Data Transfer Object for contacts to be used in the view.
-     */
     public static class ContactDto {
         private String resourceName;
         private String firstName;

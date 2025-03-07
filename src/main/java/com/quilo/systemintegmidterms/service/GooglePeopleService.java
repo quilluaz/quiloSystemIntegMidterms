@@ -49,7 +49,6 @@ public class GooglePeopleService {
                 .build();
     }
 
-    // Fetch all contacts with additional fields
     public List<Person> getContacts(OAuth2AuthenticationToken authentication) {
         try {
             var response = getPeopleService(authentication)
@@ -66,7 +65,6 @@ public class GooglePeopleService {
         }
     }
 
-    // Fetch a single contact with additional fields
     public Person getContactByResourceName(OAuth2AuthenticationToken authentication, String resourceName) {
         try {
             return getPeopleService(authentication).people()
@@ -78,7 +76,7 @@ public class GooglePeopleService {
         }
     }
 
-    // Create a new contact with multiple emails, phones, birthday, and notes
+    // Create new contact
     public void createContact(OAuth2AuthenticationToken authentication,
                               String firstName,
                               String lastName,
@@ -133,7 +131,7 @@ public class GooglePeopleService {
         }
     }
 
-    // Update existing contact with multiple emails, phones, birthday, and notes
+    // Update contact
     public void updateContact(OAuth2AuthenticationToken authentication,
                               String resourceName,
                               String firstName,
