@@ -1,277 +1,131 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const addContactBtn = document.getElementById("addContactBtn");
-  const contactModal = document.getElementById("contactModal");
-  const closeModal = document.getElementById("closeModal");
-  const cancelBtn = document.getElementById("cancelBtn");
-  const contactForm = document.getElementById("contactForm");
-  const deleteButtons = document.querySelectorAll(".delete-contact");
-  const editButtons = document.querySelectorAll(".edit-contact");
-  const deleteModal = document.getElementById("deleteModal");
-  const closeDeleteModal = document.getElementById("closeDeleteModal");
-  const cancelDeleteBtn = document.getElementById("cancelDeleteBtn");
-  const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
-  const detailsModal = document.getElementById("detailsModal");
-  const closeDetailsModal = document.getElementById("closeDetailsModal");
-  const editFromDetailsBtn = document.getElementById("editFromDetailsBtn");
-  const deleteFromDetailsBtn = document.getElementById("deleteFromDetailsBtn");
+// DOM references
+const addContactBtn = document.getElementById("add-contact-btn");
+const contactModal = document.getElementById("contact-modal");
+const contactForm = document.getElementById("contact-form");
+const modalTitle = document.getElementById("modal-title");
+const resourceNameInput = document.getElementById("resource-name");
 
-  // Open Add/Edit Modal
-  function openModal(isEdit = false, person = null) {
-    contactModal.classList.add("active");
-    document.getElementById("modalTitle").textContent = isEdit
-      ? "Edit Contact"
-      : "Add New Contact";
-    if (isEdit && person) {
-      document.getElementById("resourceName").value = person.resourceName || "";
-      document.getElementById("givenName").value =
-        person.names && person.names[0] ? person.names[0].givenName || "" : "";
-      document.getElementById("familyName").value =
-        person.names && person.names[0] ? person.names[0].familyName || "" : "";
-      document.getElementById("phoneValue").value =
-        person.phoneNumbers && person.phoneNumbers[0]
-          ? person.phoneNumbers[0].value || ""
-          : "";
-    } else {
-      contactForm.reset();
-      document.getElementById("resourceName").value = "";
-    }
-  }
+// We now have separate firstName & lastName fields
+const contactFnameInput = document.getElementById("contact-fname");
+const contactLnameInput = document.getElementById("contact-lname");
+const contactEmailInput = document.getElementById("contact-email");
+const contactNumberInput = document.getElementById("contact-number");
+const profilePicPreview = document.getElementById("profile-pic-preview");
 
-  // Close Add/Edit Modal
-  function closeModalFunc() {
-    contactModal.classList.remove("active");
-  }
+const deleteModal = document.getElementById("delete-modal");
+const deleteForm = document.getElementById("delete-form");
+const deleteResourceInput = document.getElementById("delete-resource");
 
-  // Open Delete Modal
-  function openDeleteModal(resourceName) {
-    deleteModal.classList.add("active");
-    confirmDeleteBtn.setAttribute("data-id", resourceName);
-  }
+const successModal = document.getElementById("success-modal");
+const successMessage = document.getElementById("success-message");
 
-  // Close Delete Modal
-  function closeDeleteModalFunc() {
-    deleteModal.classList.remove("active");
-  }
+// Buttons
+const cancelBtn = document.getElementById("cancel-btn");
+const cancelDeleteBtn = document.getElementById("cancel-delete-btn");
+const successOkBtn = document.getElementById("success-ok-btn");
 
-  // Open Details Modal
-  function openDetailsModal(contactItem) {
-    const resourceName = contactItem.getAttribute("data-id");
-    const fullName = contactItem
-      .querySelector(".contact-name")
-      .textContent.trim();
-    const phone = contactItem
-      .querySelector(".contact-phone")
-      .textContent.trim();
+// Close icons on modals
+const closeButtons = document.querySelectorAll(".close-modal");
 
-    document.getElementById("detailsInitials").textContent = fullName
-      .split(" ")
-      .map((n) => n[0])
-      .join("");
-    document.getElementById("detailsName").textContent = fullName;
-    document.getElementById("detailsPhone").textContent = phone;
-
-    // Set data attributes for edit and delete
-    editFromDetailsBtn.setAttribute("data-id", resourceName);
-    deleteFromDetailsBtn.setAttribute("data-id", resourceName);
-
-    detailsModal.classList.add("active");
-  }
-
-  // Close Details Modal
-  function closeDetailsModalFunc() {
-    detailsModal.classList.remove("active");
-  }
-
-  // Event Listeners for Modals
+function init() {
+  // "Add Contact" button opens the add modal
   if (addContactBtn) {
-    addContactBtn.addEventListener("click", () => openModal(false));
+    addContactBtn.addEventListener("click", openAddModal);
   }
 
-  if (closeModal) {
-    closeModal.addEventListener("click", closeModalFunc);
-  }
+  // Cancel in the add/edit modal
+  cancelBtn.addEventListener("click", () => closeModal(contactModal));
 
-  if (cancelBtn) {
-    cancelBtn.addEventListener("click", closeModalFunc);
-  }
+  // Cancel in the delete modal
+  cancelDeleteBtn.addEventListener("click", () => closeModal(deleteModal));
 
-  if (closeDeleteModal) {
-    closeDeleteModal.addEventListener("click", closeDeleteModalFunc);
-  }
+  // Dismiss success modal
+  successOkBtn.addEventListener("click", () => closeModal(successModal));
 
-  if (cancelDeleteBtn) {
-    cancelDeleteBtn.addEventListener("click", closeDeleteModalFunc);
-  }
-
-  if (closeDetailsModal) {
-    closeDetailsModal.addEventListener("click", closeDetailsModalFunc);
-  }
-
-  // Handle form submission for create/update
-  if (contactForm) {
-    contactForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const formData = new FormData(contactForm);
-      const person = {
-        resourceName: formData.get("resourceName"),
-        names: [
-          {
-            givenName: formData.get("names[0].givenName"),
-            familyName: formData.get("names[0].familyName"),
-          },
-        ],
-        phoneNumbers: [
-          {
-            value: formData.get("phoneNumbers[0].value"),
-          },
-        ],
-      };
-
-      if (!person.resourceName) {
-        // Create new contact (POST)
-        fetch("/api/contacts", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(person),
-        })
-          .then((response) => {
-            if (!response.ok) throw new Error("Network response was not ok");
-            return response.json();
-          })
-          .then((data) => {
-            alert("Contact saved successfully!");
-            window.location.reload();
-          })
-          .catch((error) => {
-            console.error("Error saving contact:", error);
-            alert("Error saving contact");
-          });
-      } else {
-        // Update existing contact (PUT)
-        fetch(`/api/contacts/${person.resourceName}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(person),
-        })
-          .then((response) => {
-            if (!response.ok) throw new Error("Network response was not ok");
-            return response.json();
-          })
-          .then((data) => {
-            alert("Contact updated successfully!");
-            window.location.reload();
-          })
-          .catch((error) => {
-            console.error("Error updating contact:", error);
-            alert("Error updating contact");
-          });
-      }
-      closeModalFunc();
-    });
-  }
-
-  // Handle delete button clicks
-  deleteButtons.forEach((button) => {
-    button.addEventListener("click", function (e) {
-      e.stopPropagation();
-      const resourceName = this.getAttribute("data-id");
-      openDeleteModal(resourceName);
+  // X icons in modals
+  closeButtons.forEach((button) => {
+    button.addEventListener("click", function () {
+      const modal = this.closest(".modal");
+      closeModal(modal);
     });
   });
 
-  // Handle edit button clicks by extracting contact info from the DOM
-  editButtons.forEach((button) => {
-    button.addEventListener("click", function (e) {
-      e.stopPropagation();
-      const contactItem = this.closest(".contact-item");
-      const resourceName = contactItem.getAttribute("data-id");
-      const fullName = contactItem
-        .querySelector(".contact-name")
-        .textContent.trim();
-      const nameParts = fullName.split(" ");
-      const givenName = nameParts[0] || "";
-      const familyName = nameParts[1] || "";
-      const phone = contactItem
-        .querySelector(".contact-phone")
-        .textContent.trim();
+  // Attach edit event to each "edit-btn"
+  document.querySelectorAll(".edit-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const resName = btn.getAttribute("data-resource-name") || "";
+      const fName = btn.getAttribute("data-contact-fname") || "";
+      const lName = btn.getAttribute("data-contact-lname") || "";
+      const cEmail = btn.getAttribute("data-contact-email") || "";
+      const cPhone = btn.getAttribute("data-contact-phone") || "";
 
-      const person = {
-        resourceName: resourceName,
-        names: [{ givenName: givenName, familyName: familyName }],
-        phoneNumbers: [{ value: phone }],
-      };
-      openModal(true, person);
+      openEditModal(resName, fName, lName, cEmail, cPhone);
     });
   });
 
-  // Handle confirm delete
-  if (confirmDeleteBtn) {
-    confirmDeleteBtn.addEventListener("click", function () {
-      const resourceName = this.getAttribute("data-id");
-      fetch(`/api/contacts/${resourceName}`, {
-        method: "DELETE",
-      })
-        .then((response) => {
-          if (!response.ok) throw new Error("Network response was not ok");
-          alert("Contact deleted successfully!");
-          window.location.reload();
-        })
-        .catch((error) => {
-          console.error("Error deleting contact:", error);
-          alert("Error deleting contact");
-        });
-      closeDeleteModalFunc();
-      closeDetailsModalFunc();
-    });
-  }
-
-  // Handle contact item clicks to open details modal
-  const contactItems = document.querySelectorAll(".contact-item");
-  contactItems.forEach((item) => {
-    item.addEventListener("click", function (e) {
-      if (!e.target.closest("button")) {
-        openDetailsModal(this);
-      }
+  // Attach delete event to each "delete-btn"
+  document.querySelectorAll(".delete-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const resName = btn.getAttribute("data-resource-name");
+      openDeleteModal(resName);
     });
   });
+}
 
-  // Handle edit from details modal
-  if (editFromDetailsBtn) {
-    editFromDetailsBtn.addEventListener("click", function () {
-      const resourceName = this.getAttribute("data-id");
-      const contactItem = document.querySelector(
-        `.contact-item[data-id="${resourceName}"]`
-      );
-      if (!contactItem) return;
-      const fullName = contactItem
-        .querySelector(".contact-name")
-        .textContent.trim();
-      const nameParts = fullName.split(" ");
-      const givenName = nameParts[0] || "";
-      const familyName = nameParts[1] || "";
-      const phone = contactItem
-        .querySelector(".contact-phone")
-        .textContent.trim();
-      closeDetailsModalFunc();
-      const person = {
-        resourceName: resourceName,
-        names: [{ givenName: givenName, familyName: familyName }],
-        phoneNumbers: [{ value: phone }],
-      };
-      openModal(true, person);
-    });
-  }
+// "Add Contact" form
+function openAddModal() {
+  modalTitle.textContent = "Add Contact";
+  resourceNameInput.value = "";
+  contactFnameInput.value = "";
+  contactLnameInput.value = "";
+  contactEmailInput.value = "";
+  contactNumberInput.value = "";
 
-  // Handle delete from details modal
-  if (deleteFromDetailsBtn) {
-    deleteFromDetailsBtn.addEventListener("click", function () {
-      const resourceName = this.getAttribute("data-id");
-      closeDetailsModalFunc();
-      openDeleteModal(resourceName);
-    });
-  }
-});
+  profilePicPreview.innerHTML =
+    '<span class="material-icons">account_circle</span>';
+
+  // For creation, POST /contacts
+  contactForm.action = "/contacts";
+
+  openModal(contactModal);
+}
+
+// "Edit Contact" form
+function openEditModal(resName, fName, lName, cEmail, cPhone) {
+  modalTitle.textContent = "Edit Contact";
+  resourceNameInput.value = resName;
+  contactFnameInput.value = fName;
+  contactLnameInput.value = lName;
+  contactEmailInput.value = cEmail;
+  contactNumberInput.value = cPhone;
+
+  profilePicPreview.innerHTML =
+    '<span class="material-icons">account_circle</span>';
+
+  // Use path: /contacts/{resourceName}/update
+  contactForm.action = "/contacts/" + resName + "/update";
+
+  openModal(contactModal);
+}
+
+// "Delete Contact" form
+function openDeleteModal(resName) {
+  deleteForm.action = "/contacts/" + resName + "/delete";
+  openModal(deleteModal);
+}
+
+// Optional success message
+function showSuccessMessage(msg) {
+  successMessage.textContent = msg;
+  openModal(successModal);
+}
+
+// Open/Close helpers
+function openModal(modal) {
+  modal.style.display = "flex";
+}
+function closeModal(modal) {
+  modal.style.display = "none";
+}
+
+document.addEventListener("DOMContentLoaded", init);

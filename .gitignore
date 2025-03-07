@@ -32,5 +32,5 @@ build/
 ### VS Code ###
 .vscode/
 
-### Ignore credentials directory under src/main/resources ###
-/src/main/resources/credentials/
+### Ignore credentials/.env file ###
+.env
